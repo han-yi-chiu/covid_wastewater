@@ -1,0 +1,97 @@
+---
+title: "Analysis of SARS-CoV-2 concentration in wastewater"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+params:
+  state: "nj"
+  download_raw_data: TRUE
+hitheme: tomorrow
+highlighter: highlight.js
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+knitr::opts_chunk$set(echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 9,
+  fig.height = 6,
+  fig.path = "../results/"
+)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+
+## Overview
+
+```{r, include = FALSE}
+download_date = Sys.Date()
+```
+
+
+This file produces a report of the wastewater concentration of SARS-CoV-2 in different counties in `r toupper(params$state)`. Data for this report was downloaded from the CDC website on `r download_date`.
+
+## Download and clean data
+
+Two data sources were pulled and merged for this analysis. One is a dataset of SARS-CoV-2 wastewater concentration at different sampling sites, which can be accessed [here](https://data.cdc.gov/Public-Health-Surveillance/NWSS-Public-SARS-CoV-2-Concentration-in-Wastewater/g653-rqe2/about_data). The second, accessible [here](https://data.cdc.gov/Public-Health-Surveillance/NWSS-Public-SARS-CoV-2-Wastewater-Metric-Data/2ew6-ywp6/about_data), contains summary information about SARS-CoV-2 wastewater concentration at different sites, with additional information about site location including county and state.
+
+First we downloaded and cleaned the data from the CDC website. 
+
+```{r}
+if(params$download_raw_data){
+  source(here("source", "01_data_download.R")) 
+}else if(!file.exists(here::here("data", "raw.Rdata"))){
+  source(here("source", "01_data_download.R")) 
+}
+
+source(here("source", "02_data_cleaning.R")) 
+```
+
+
+## Analysis
+
+Next we did a simple analysis of the concentrations across different counties in `r toupper(params$state)`. Specifically, we calculated the median and interquartile range within each county, which are given in the table below:
+
+```{r}
+source(here("source", "03_data_analysis.R"))
+```
+
+```{r}
+covid_table %>%
+  knitr::kable()
+```
+
+
+
+
+
+# Visualization
+
+Finally, we visualize the concentration across counties. 
+
+```{r}
+source(here("source", "04_data_visualization.R"))
+```
+
+First we look at boxplots of the `log(concentration)` of SARS-CoV-2 across counties in `r toupper(params$state)`. The counties have been shorted from lowest to highest SARS-CoV-2 concentration.
+
+```{r, figure1}
+plot1
+```
+
+
+Next, we visualize trends in SARS-CoV-2 concentration over time.
+
+```{r, figure2, fig.height = 10}
+plot2
+```
+
+
